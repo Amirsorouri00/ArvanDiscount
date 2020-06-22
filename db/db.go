@@ -9,7 +9,7 @@ import (
 )
 
 
-// Connecting to DB
+// Connecting to DB OK
 func ConnectDB() *pg.DB {
 	opts := &pg.Options {
 		User: "go_db",
@@ -26,9 +26,10 @@ func ConnectDB() *pg.DB {
 
 	log.Printf("Connected to DB")
 	
-	
 	// Pass DB Connection to the controller
 	controller.InitiateDB(db)
+	controller.CreateTables(db)
+
 	return db
 }
 
