@@ -28,6 +28,7 @@ func ConnectDB() *pg.DB {
 	
 	// Pass DB Connection to the controller
 	controller.InitiateDB(db)
+	controller.InitiateSeed()
 	controller.CreateTables(db)
 
 	return db

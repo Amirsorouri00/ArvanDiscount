@@ -5,17 +5,29 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	// controller "github.com/amirsorouri00/arvandiscount/controller"
+	controller "github.com/amirsorouri00/arvandiscount/controller"
 )
 
 func Routes(router *gin.Engine) {
 	router.GET("/", welcomeToDiscount)
 	
-	
+	// Discount APIs
+	router.GET("/alldiscounts", controller.GetAllDiscounts)
+	router.POST("/adddiscount", controller.AddDiscount)
+	// router.POST("/getdiscount", controller.GetDiscount)
+
+	// Stream APIs (Just for test)
+	router.GET("/allstreams", controller.GetAllStreams)
+	router.POST("/addstream", controller.AddStream)
+
 	// Gift APIs
+	// router.GET("/allgift", controller.GetAllGifts)
+	// router.POST("/addgift", controller.AddGift)
+	// router.POST("/getgift", controller.GetGift)
 	
 	router.NoRoute(notFound)
 }
+
 
 func welcomeToDiscount (c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
@@ -24,6 +36,7 @@ func welcomeToDiscount (c *gin.Context) {
 	})
 	return
 }
+
 
 func notFound(c *gin.Context) {
 	c.JSON(http.StatusNotFound, gin.H{
