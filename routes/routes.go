@@ -23,12 +23,12 @@ func Routes(router *gin.Engine) {
 	// Gift APIs
 	router.GET("/allgifts", controller.GetAllGifts)
 	router.POST("/addgift", controller.AddGift)
-	// router.POST("/getgift", controller.GetGift)
+	router.POST("/getgift", controller.GetGift)
 	
 	router.NoRoute(notFound)
 }
 
-
+// Welcome Test API OK
 func welcomeToDiscount (c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
@@ -37,7 +37,7 @@ func welcomeToDiscount (c *gin.Context) {
 	return
 }
 
-
+// Not Found API OK
 func notFound(c *gin.Context) {
 	c.JSON(http.StatusNotFound, gin.H{
 		"status":  404,

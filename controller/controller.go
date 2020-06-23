@@ -12,7 +12,6 @@ import (
 	orm "github.com/go-pg/pg/v9/orm"
 )
 
-
 type DiscountManager struct {
 	Id	 			string 		`json:"id"`
 	Code			string		`json:"code"`
@@ -291,6 +290,54 @@ func AddGift(c *gin.Context) {
 		"status":  http.StatusCreated,
 		"message": "Gift created Successfully",
 		"gift_code": code,
+	})
+	return
+}
+
+
+type GetGiftType struct {
+	Code string `json:"code"`
+}
+
+// Get Gift by Code 
+func GetGift(c *gin.Context) {
+	var req GetGiftType
+	c.BindJSON(&req)
+	var gift Gift
+	err := dbConnect.Model(&gift).Relation("DiscountManager").Where("code = ?", req.Code).Select()
+
+	if err != nil {
+		log.Printf("GetGift: Error while getting gift, Reason: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "Something went wrong",
+		})
+		return
+	}
+
+	if gift.Used >= gift.Capacity {
+		log.Printf("GetGift: Gift has not Capacity to use anymore.\n", err)
+		c.JSON(http.StatusPreconditionFailed, gin.H{
+			"status":  http.StatusPreconditionFailed,
+			"message": "No more Capacity to use. All used.",
+		})
+		return
+	}
+
+	_, err2 := dbConnect.Model(&Gift{}).Set("used = ?", (gift.Used + 1)).Where("id = ?", gift.Id).Update()
+	if err2 != nil {
+		log.Printf("GetGift: Error on updating gift used column, Reason: %v\n", err2)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": 500,
+			"message":  "Something went wrong",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "Gift Used Column Updated. It can be seen using GetAllGifts API.",
+		"gift_amount": gift.Amount,
 	})
 	return
 }
