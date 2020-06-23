@@ -117,7 +117,7 @@ func CreateTables(db *pg.DB) error {
 }
 
 
-// Get All Discounts
+// Get All Discounts OK
 func GetAllDiscounts(c *gin.Context) {
 	var discounts []Discount
 	err := dbConnect.Model(&discounts).Relation("DiscountManager").Select()
@@ -144,7 +144,6 @@ type AddDiscountType struct {
 	Amount        float64 `json:"amount"`
 	Percent       int     `json:"percent"`
 	PercentAmount bool    `json:"percent_amount"`
-	DiscountGift  bool    `json:"discount_gift"`
 	StreamId      string  `json:"stream_id"`
 }
 
@@ -181,10 +180,11 @@ func AddDiscount(c *gin.Context) {
 		return
 	}
 
+	code := RandString(8)
 	insertError2 := dbConnect.Insert(&DiscountManager{
 		Id: guuid.New().String(),
-		Code: RandString(8),
-		DiscountGift: req.DiscountGift,
+		Code: code,
+		DiscountGift: false,
 		DiscountId: uuid,
 		StreamId: stream.Id,
 		CreatedAt:  time.Now(),
@@ -195,6 +195,7 @@ func AddDiscount(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  http.StatusInternalServerError,
 			"message": "Something went wrong",
+			"Code": code,
 		})
 		return
 	}
@@ -206,6 +207,93 @@ func AddDiscount(c *gin.Context) {
 	return
 }
 
+// Get All Gifts OK
+func GetAllGifts(c *gin.Context) {
+	var gifts []Gift
+	err := dbConnect.Model(&gifts).Relation("DiscountManager").Select()
+
+	if err != nil {
+		log.Printf("Error while getting all gifts, Reason: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "Something went wrong",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "All Gifts",
+		"data": gifts,
+	})
+	return
+}
+
+
+type AddGiftType struct {
+	Amount       float64 `json:"amount"`
+	Capacity     int     `json:"capacity"`
+	StreamId     string  `json:"stream_id"`
+}
+
+// Add Gift OK
+func AddGift(c *gin.Context) {
+	var req AddGiftType
+	c.BindJSON(&req)
+	uuid := guuid.New().String()
+	insertError := dbConnect.Insert(&Gift{
+		Id: uuid,
+		Amount: req.Amount,
+		Used: 0,
+		Capacity: req.Capacity,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+	})
+	if insertError != nil {
+		log.Printf("Error while inserting new gift into db, Reason: %v\n", insertError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "Something went wrong",
+		})
+		return
+	}
+
+	var stream Stream	// Check if the streamId exist or not
+	err := dbConnect.Model(&stream).Where("id = ?", req.StreamId).Select()
+	if err != nil {
+		log.Printf("AddDiscount: Error while getting stream by name from db, Reason: %v\n", insertError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "Something went wrong",
+		})
+		return
+	}
+	code := RandString(8)
+	insertError2 := dbConnect.Insert(&DiscountManager{
+		Id: guuid.New().String(),
+		Code: code,
+		DiscountGift: true,
+		GiftId: uuid,
+		StreamId: stream.Id,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+	})
+	if insertError2 != nil {
+		log.Printf("AddGift: Error while inserting new DiscountManager into db, Reason: %v\n", insertError2)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "Something went wrong",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"status":  http.StatusCreated,
+		"message": "Gift created Successfully",
+		"gift_code": code,
+	})
+	return
+}
 
 // Get All Streams OK
 func GetAllStreams(c *gin.Context) {

@@ -21,8 +21,8 @@ func Routes(router *gin.Engine) {
 	router.POST("/addstream", controller.AddStream)
 
 	// Gift APIs
-	// router.GET("/allgift", controller.GetAllGifts)
-	// router.POST("/addgift", controller.AddGift)
+	router.GET("/allgifts", controller.GetAllGifts)
+	router.POST("/addgift", controller.AddGift)
 	// router.POST("/getgift", controller.GetGift)
 	
 	router.NoRoute(notFound)
