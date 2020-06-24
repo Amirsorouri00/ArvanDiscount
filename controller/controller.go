@@ -299,7 +299,7 @@ type GetGiftType struct {
 	Code string `json:"code"`
 }
 
-// Get Gift by Code 
+// Get Gift by Code OK
 func GetGift(c *gin.Context) {
 	var req GetGiftType
 	c.BindJSON(&req)
